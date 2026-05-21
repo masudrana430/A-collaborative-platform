@@ -3,7 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   createIssueService,
   getAllIssuesService,
-  getSingleIssueService
+  getSingleIssueService,
+  updateIssueService,
+  deleteIssueService
 } from "./issue.service";
 import { successResponse, dataResponse } from "../../utils/response";
 import { AppError } from "../../utils/appError";
@@ -52,4 +54,38 @@ export const getSingleIssue = async (
   const issue = await getSingleIssueService(issueId);
 
   dataResponse(res, StatusCodes.OK, issue);
+};
+
+export const updateIssue = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  if (!req.user) {
+    throw new AppError("Authentication required", StatusCodes.UNAUTHORIZED);
+  }
+
+  const issueId = Number(req.params.id);
+
+  if (Number.isNaN(issueId)) {
+    throw new AppError("Invalid issue id", StatusCodes.BAD_REQUEST);
+  }
+
+  const issue = await updateIssueService(issueId, req.body, req.user);
+
+  successResponse(res, StatusCodes.OK, "Issue updated successfully", issue);
+};
+
+export const deleteIssue = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const issueId = Number(req.params.id);
+
+  if (Number.isNaN(issueId)) {
+    throw new AppError("Invalid issue id", StatusCodes.BAD_REQUEST);
+  }
+
+  await deleteIssueService(issueId);
+
+  successResponse(res, StatusCodes.OK, "Issue deleted successfully");
 };
